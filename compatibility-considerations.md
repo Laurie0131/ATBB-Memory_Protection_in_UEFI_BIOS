@@ -1,12 +1,11 @@
 <!--- @file
 
-  Memory Protection in SMM.md for 
+  Compatibility Considerations.md for 
     A Tour Beyond BIOS - Memory Protection in UEFI BIOS
-
   Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
   Redistribution and use in source (original document form) and 'compiled'
   forms (converted to PDF, epub, HTML and other formats) with or without
-  modification, are permitted provided that the following conditions are met:
+   modification, are permitted provided that the following conditions are met:
   1) Redistributions of source code (original document form) must retain the
      above copyright notice, this list of conditions and the following
      disclaimer as the first lines of this file unmodified.
@@ -23,14 +22,15 @@
   OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS DOCUMENTATION, EVEN IF
-  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -->
-# Memory Protection in SMM
+## Compatibility Considerations
 
-The SMM is an isolated execution environment according to Intel® 64 and IA-32 Architectures Software Developer’s Manual \[[IA32SDM](https://software.intel.com/en-us/articles/intel-sdm "IA32SDM")\]. The UEFI Platform Initialization \[[PI](http://uefi.org "PI Spec")\] specification volume 4 defines the SMM infrastructure. Figure 1 shows the SMM memory protection. **RO** designates read-only memory. **XD **designates execution-disabled memory.
+1. So far, we have not observed self-modified-code in SMM image or executable code in data section. As such, we believe the PE image protection is compatible.
 
-![](/assets/Fig1- SMRAM memory protection.jpg)
+2. The protection for the SMM communication buffer may cause a \#PF exception in SMM if the SMI handler does not perform the check recommended in \[[SecureSmmComm](https://github.com/tianocore-docs/Docs/raw/master/White_Papers/A_Tour_Beyond_BIOS_Secure_SMM_Communication.pdf "SecureSmmComm")\].
 
-Figure 1 - SMRAM memory protection
+3. Some legacy Compatibility Support Module \(CSM\) drivers may need co-work with SMM module. Then the SMM driver need access the legacy region. As such these memory regions should be allocated as ReservedMemory, such as BIOS data area \(BDA\) or extended BIOS data area \(EBDA\).
+
 

@@ -1,12 +1,11 @@
 <!--- @file
 
-  Memory Protection in SMM.md for 
+  Call for Action.md for 
     A Tour Beyond BIOS - Memory Protection in UEFI BIOS
-
   Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
   Redistribution and use in source (original document form) and 'compiled'
   forms (converted to PDF, epub, HTML and other formats) with or without
-  modification, are permitted provided that the following conditions are met:
+   modification, are permitted provided that the following conditions are met:
   1) Redistributions of source code (original document form) must retain the
      above copyright notice, this list of conditions and the following
      disclaimer as the first lines of this file unmodified.
@@ -23,14 +22,31 @@
   OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS DOCUMENTATION, EVEN IF
-  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -->
-# Memory Protection in SMM
 
-The SMM is an isolated execution environment according to Intel® 64 and IA-32 Architectures Software Developer’s Manual \[[IA32SDM](https://software.intel.com/en-us/articles/intel-sdm "IA32SDM")\]. The UEFI Platform Initialization \[[PI](http://uefi.org "PI Spec")\] specification volume 4 defines the SMM infrastructure. Figure 1 shows the SMM memory protection. **RO** designates read-only memory. **XD **designates execution-disabled memory.
 
-![](/assets/Fig1- SMRAM memory protection.jpg)
+## Call for action
 
-Figure 1 - SMRAM memory protection
+In order to support SMM memory protection, the firmware need configure SMM driver to be page aligned:
 
+1.    Override link flags below to support SMM memory protection.
+
+```css
+
+        [BuildOptions.common.EDKII.DXE_SMM_DRIVER,
+
+        BuildOptions.common.EDKII.SMM_CORE]    
+
+        MSFT:*_*_*_DLINK_FLAGS = /ALIGN:4096 
+
+        GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000
+
+```
+
+1. Evaluate if SMRAM size is big enough.
+
+#### Summary
+
+This section introduces the memory protection in SMM.
