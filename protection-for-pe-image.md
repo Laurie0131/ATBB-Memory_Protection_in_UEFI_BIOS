@@ -28,17 +28,31 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -->
 
+
 ## Protection for PE image
 
-In UEFI\/PI firmware, the SMM image is a normal PE\/COFF image loaded by the SmmCore. If a given section of the SMM image is page aligned, it may be protected according to the section attributes, such as read-only for the code and non-executable for data. See the top right of figure 1.
+The DXE core may apply a pre-defined policy to set up the NX attribute for the PE data region and the RO attribute for the PE code region.
 
-In EDK II, the PiSmmCore \([https:\/\/github.com\/tianocore\/edk2\/blob\/master\/MdeModulePkg\/Core\/PiSmmCore\/MemoryAttributesTable.c](https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Core/PiSmmCore/MemoryAttributesTable.c)\) checks the PE image alignment and builds an `EDKII_PI_SMM_MEMORY_ATTRIBUTES_TABLE` \([https:\/\/github.com\/tianocore\/edk2\/blob\/master\/MdeModulePkg\/Include\/Guid\/PiSmmMemoryAttributesTable.h](https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Include/Guid/PiSmmMemoryAttributesTable.h)\) to record such information. If the PI SMM image is not page aligned, this table will not be published. If the `EDKII_PI_SMM_MEMORY_ATTRIBUTES_TABLE` is published, that means the `EfiRuntimeServicesCode` contains only code and it is `EFI_MEMORY_RO`, and the `EfiRuntimeServicesData` contains only data and it is `EFI_MEMORY_XP`.
+1.	The image is loaded by the UEFI boot service - `LoadImage()`. If an image is loaded in some other way, the DXE core does not have such knowledge and the DXE core cannot apply any protection.
 
-Later the PiSmmCpu driver \([https:\/\/github.com\/tianocore\/edk2\/blob\/master\/UefiCpuPkg\/PiSmmCpuDxeSmm\/SmmCpuMemoryManagement.c\)\`](https://github.com/tianocore/edk2/blob/master/UefiCpuPkg/PiSmmCpuDxeSmm/SmmCpuMemoryManagement.c)`) SetMemMapAttributes\(\)\` API consumes the `EDKII_PI_SMM_MEMORY_ATTRIBUTES_TABLE` and sets the page table attribute.
+2.	The image section is page aligned. If an image is not page aligned, the DXE core cannot apply the page level protection.
 
-There are several assumptions to support the PE image protection in SMM:
+3.	The protection policy can be based upon a PCD ‘PcdImageProtectionPolicy`. (https://github.com/tianocore/edk2/blob/master/MdeModulePkg/MdeModulePkg.dec) Whenever a new image is loaded, the DxeCore checks the source of the image and then decides the policy of the protection. The policy could be to enable the protection if the sections are aligned, or disable the protection. The platform may choose the policy based upon the need. For example, if a platform thinks the image from the firmware volume should be capable of being protection, it can set protection for IMAGE_FROM_FV. But if a platform is not sure about a PCI option ROM or a file system on disk, it can set no-protection.
 
-1. The PE code section and data sections are not merged. If those 2 sections are merged, a \#PF exception might be generated because the CPU might try to write a RO data item in the data section or execute a non-executable \(NX\) instruction in code section.
-2. The PE image can be protected if it is page aligned. There should not be any self-modified-code in the code region. If there is, a platform should not set this PE image to be page aligned.
+There are assumptions for the PE image protection in UEFI:
 
-A platform may disable the XD in the UEFI environment, but this does not impact the SMM environment. The SMM environment may choose to always enable the XD upon SMM entry, and restore the XD state at the SMM exit point.
+1.	[Same as SMM] The PE code section and data sections are not merged. If those 2 sections are merged, a #PF exception might be generated because the CPU may try to write a RO data in data section or execute a NX instruction in the code section.
+
+2.	[Same as SMM] The PE image can be protected if it is page aligned. There should not be any self-modifying-code in the code region. If there is, a platform should not set this PE image to be page aligned.
+
+3.	A platform may not disable the XD in the DXE phase. If a platform disables the XD in the DXE phase, the X86 page table will become invalid because the XD bit in page table becomes a RESERVED bit. The consequence is that a #PF exception will be generated. If a platform wants to disable the XD bit, it must happen in the PEI phase.
+
+In EDK II, the DXE core image services calls `ProtectUefiImage()` on image load and `UnprotectUefiImage()` on image unload. (https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Core/Dxe/Image/Image.c) Then `ProtectUefiImageCommon()` (https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Core/Dxe/Misc/MemoryProtection.c) calls `GetUefiImageProtectionPolicy()` to check the image source and protection policy and parses PE alignment. If all checks pass, `SetUefiImageProtectionAttributes()` calls `SetUefiImageMemoryAttributes()`. Finally, `gCpu->SetMemoryAttribute()` sets **EFI_MEMORY_XP** or **EFI_MEMORY_RO** for the new loaded image , or clears the protection for the old unloaded image. When the CPU driver gets the memory attribute setting request, it updates page table.
+
+The X86 CPU driver https://github.com/tianocore/edk2/blob/master/UefiCpuPkg/CpuDxe/CpuDxe.c `CpuSetMemoryAttributes ()` calls  https://github.com/tianocore/edk2/blob/master/UefiCpuPkg/CpuDxe/CpuPageTable.c, `AssignMemoryPageAttributes()` to setup page table.
+
+The ARM CPU driver https://github.com/tianocore/edk2/blob/master/ArmPkg/Drivers/CpuDxe/CpuMmuCommon.c `CpuSetMemoryAttributes()` also has similar capability.
+
+If an image is loaded before CPU_ARCH protocol is ready, the DXE core just skips the setting. Later these images protection will be set in CPU_ARCH callback function – `MemoryProtectionCpuArchProtocolNotify() `(https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Core/Dxe/Misc/MemoryProtection.c).
+
+In `ExitBootServices` event, `MemoryProtectionExitBootServicesCallback() `(https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Core/Dxe/Misc/MemoryProtection.c) is invoked to unprotect the runtime image, because the runtime image code relocation need write code segment at `SetVirtualAddressMap()`.

@@ -14,6 +14,8 @@
     * [Compatibility Considerations](compatibility-considerations.md)
     * [Call for Action](call-for-action.md)
 * [Memory Protection in UEFI](memory-protection-in-uefi.md)
+    * [Size Overhead\_](size-overhead.md)
+    * [Compatibility Consideration\_](compatibility-consideration.md)
 * [Glossary](glossary.md)
 * [References](references.md)
 * [Authors](authors.md)
