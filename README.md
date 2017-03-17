@@ -1,7 +1,6 @@
 <!--- @file
   README.md for A Tour Beyond BIOS - Memory Protection in UEFI BIOS
-
-  Copyright (c) 2007-2017, Intel Corporation. All rights reserved.<BR>
+  Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
 
   Redistribution and use in source (original document form) and 'compiled'
   forms (converted to PDF, epub, HTML and other formats) with or without
