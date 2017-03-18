@@ -37,7 +37,6 @@ In order to support UEFI memory protection, the firmware need configure UEFI dri
 2.	Override link flags below to support UEFI memory protection.
  ```css
  [BuildOptions.common.EDKII.DXE_DRIVER, 
-
  BuildOptions.common.EDKII.DXE_CORE, 
  BuildOptions.common.EDKII.UEFI_DRIVER,
  BuildOptions.common.EDKII.UEFI_APPLICATION]

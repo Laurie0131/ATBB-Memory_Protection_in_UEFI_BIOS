@@ -25,10 +25,10 @@
 -->
 ## Size Overhead
 
-1.	Runtime memory overhead (visible to OS)
+1.	**Runtime memory overhead (visible to OS)**
 :	The size overhead of the runtime PE image is the same as the overhead of the SMM PE image.  If a platform has n runtime images, the average amount overhead is `6K * n`.
 
-2.	Boot time memory overhead (invisible to OS)
+2.	**Boot time memory overhead (invisible to OS)**
 :	The size of the overhead for the boot time PE image is the same as the overhead of the SMM PE image. If a platform has n boot time images, the average overhead is `6K * n`.
 
 If the NX protection for data is enabled, the size of the page table is increased because we need set fine granularity page level protection.
