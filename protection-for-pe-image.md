@@ -1,4 +1,4 @@
-<
+
 !--- @file
 
 Protection for PE image.md for
