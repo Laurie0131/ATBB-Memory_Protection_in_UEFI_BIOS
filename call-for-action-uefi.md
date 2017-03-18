@@ -1,5 +1,5 @@
 <!--- @file
-  Size Overhead UEFI.md 
+  Call for Action UEFI.md 
   for A Tour Beyond BIOS - Memory Protection in UEFI BIOS
   Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
   Redistribution and use in source (original document form) and 'compiled'
@@ -23,15 +23,39 @@
   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS DOCUMENTATION, EVEN IF
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-## Size Overhead
+## Call for action
 
-1.	Runtime memory overhead (visible to OS)
-:	The size overhead of the runtime PE image is the same as the overhead of the SMM PE image.  If a platform has n runtime images, the average amount overhead is `6K * n`.
+In order to support UEFI memory protection, the firmware need configure UEFI driver to be page aligned:
 
-2.	Boot time memory overhead (invisible to OS)
-:	The size of the overhead for the boot time PE image is the same as the overhead of the SMM PE image. If a platform has n boot time images, the average overhead is `6K * n`.
+1.	Override link flags below to support UEFI runtime attribute table, so that OS can protect the runtime memory.
+```css 
+[BuildOptions.IA32.EDKII.DXE_RUNTIME_DRIVER,  
+ BuildOptions.X64.EDKII.DXE_RUNTIME_DRIVER]
+ MSFT:*_*_*_DLINK_FLAGS = /ALIGN:4096 
+ GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000
+```
+2.	Override link flags below to support UEFI memory protection.
+ ```css
+ [BuildOptions.common.EDKII.DXE_DRIVER, 
 
-If the NX protection for data is enabled, the size of the page table is increased because we need set fine granularity page level protection.
+ BuildOptions.common.EDKII.DXE_CORE, 
+ BuildOptions.common.EDKII.UEFI_DRIVER,
+ BuildOptions.common.EDKII.UEFI_APPLICATION]
+ MSFT:*_*_*_DLINK_FLAGS = /ALIGN:4096 
+ GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000
+ ```
 
-The size overhead of the boot time page table is also same as for the SMM static page table. Please refer to the SMM section for the size calculation based upon the 1G paging capability and max supported address bit.
+3.	Evaluate if the UEFI memory size is big enough to hold the split page table.
+4.	Evaluate if the DXE image can be protected.
+5.	Set proper `gEfiMdeModulePkgTokenSpaceGuid.PcdImageProtectionPolicy`.
+6.	Set proper `gEfiMdeModulePkgTokenSpaceGuid.PcdDxeNxMemoryProtectionPolicy`.
 
+#### Summary
+
+This section introduces the memory protection in UEFI.
+
+[1]: https://github.com/tianocore-docs/Docs/raw/master/White_Papers/A_Tour_Beyond_BIOS_Memory_Map_And_Practices_in_UEFI_BIOS_V2.pdf "MemMap"
+
+[2]: http://uefi.org "UEFI"
+
+[3]: https://github.com/tianocore-docs/Docs/raw/master/White_Papers/A_Tour_Beyond_BIOS_Securiy_Enhancement_to_Mitigate_Buffer_Overflow_in_UEFI.pdf "Security Enhancment"

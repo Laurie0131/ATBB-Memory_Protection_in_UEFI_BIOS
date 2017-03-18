@@ -1,5 +1,5 @@
 <!--- @file
-  Size Overhead UEFI.md 
+  Limitation UEFI.md 
   for A Tour Beyond BIOS - Memory Protection in UEFI BIOS
   Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
   Redistribution and use in source (original document form) and 'compiled'
@@ -23,15 +23,15 @@
   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS DOCUMENTATION, EVEN IF
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-## Size Overhead
+## Limitation
 
-1.	Runtime memory overhead (visible to OS)
-:	The size overhead of the runtime PE image is the same as the overhead of the SMM PE image.  If a platform has n runtime images, the average amount overhead is `6K * n`.
+The protection in the UEFI is limited to the PE image and the stack at this moment because of the compatibility concerns. The limitations of the UEFI memory protection are:
 
-2.	Boot time memory overhead (invisible to OS)
-:	The size of the overhead for the boot time PE image is the same as the overhead of the SMM PE image. If a platform has n boot time images, the average overhead is `6K * n`.
+1.	Not all images are protected to be NX and RO. The protection is based upon the policy.
 
-If the NX protection for data is enabled, the size of the page table is increased because we need set fine granularity page level protection.
+2.	Not all heap regions are protected to be NX due to the compatibility concern. We observed that both Windows boot loader and Linux boot loader may use the LoaderData type for the code. The heap protection is based upon the policy.
 
-The size overhead of the boot time page table is also same as for the SMM static page table. Please refer to the SMM section for the size calculation based upon the 1G paging capability and max supported address bit.
+3.	[Same as SMM] The protection cannot resist ROP attack.
+
+4.	[Same as SMM] Not all important data structures are set to ReadOnly.
 

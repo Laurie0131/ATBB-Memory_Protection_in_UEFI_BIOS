@@ -26,7 +26,7 @@
 
 -->
 
-# Memory Protection in SMM
+
 
 
 ## SMRAM Size Overhead

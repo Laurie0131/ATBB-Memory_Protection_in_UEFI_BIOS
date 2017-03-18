@@ -1,5 +1,5 @@
 <!--- @file
-  Size Overhead UEFI.md 
+  Life cycle of the protection UEFI.md 
   for A Tour Beyond BIOS - Memory Protection in UEFI BIOS
   Copyright (c) 2017, Intel Corporation. All rights reserved.<BR>
   Redistribution and use in source (original document form) and 'compiled'
@@ -23,15 +23,14 @@
   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS DOCUMENTATION, EVEN IF
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-## Size Overhead
 
-1.	Runtime memory overhead (visible to OS)
-:	The size overhead of the runtime PE image is the same as the overhead of the SMM PE image.  If a platform has n runtime images, the average amount overhead is `6K * n`.
+## Life cycle of the protection
 
-2.	Boot time memory overhead (invisible to OS)
-:	The size of the overhead for the boot time PE image is the same as the overhead of the SMM PE image. If a platform has n boot time images, the average overhead is `6K * n`.
+The UEFI image protection starts when the CpuArch protocol is ready. The UEFI runtime image protection is torn down at `ExitBootServices()`, the runtime image code relocation need write code segment at `SetVirtualAddressMap()`. We cannot assume OS/Loader has taken over page table at that time.
 
-If the NX protection for data is enabled, the size of the page table is increased because we need set fine granularity page level protection.
+The UEFI heap protection also starts when the `CpuArch` protocol is ready.
 
-The size overhead of the boot time page table is also same as for the SMM static page table. Please refer to the SMM section for the size calculation based upon the 1G paging capability and max supported address bit.
+The UEFI stack protection starts in `DxeIpl`, because the region is fixed and it can set directly.
+
+The UEFI firmware does not own page tables after `ExitBootServices()`, so the OS would have to relax protection of runtime code pages across `SetVirtualAddressMap()`, or delay setting protections on runtime code pages until after `SetVirtualAddressMap()`. OS may set protection on runtime memory based upon EFI_MEMORY_ATTRIBUTES_TABLE later.
 

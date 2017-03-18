@@ -27,9 +27,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -->
 
+
+
 ## Protection for stack and heap
 
-The PiSmmCore maintains a memory map internally. \([https:\/\/github.com\/tianocore\/edk2\/blob\/master\/MdeModulePkg\/Core\/PiSmmCore\/Page.c](https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Core/PiSmmCore/Page.c)\) If an SMM module allocates the data with `EfiRuntimeServicesCode`, this data is marked as the code page. If the SMM module allocates the data with `EfiRuntimeServicesData`, this data is marked as the data page. This information is also exposed via the `EDKII_PI_SMM_MEMORY_ATTRIBUTES_TABLE`.
+The PiSmmCore maintains a memory map internally. (https://github.com/tianocore/edk2/blob/master/MdeModulePkg/Core/PiSmmCore/Page.c) If an SMM module allocates the data with `EfiRuntimeServicesCode`, this data is marked as the code page. If the SMM module allocates the data with `EfiRuntimeServicesData`, this data is marked as the data page. This information is also exposed via the `EDKII_PI_SMM_MEMORY_ATTRIBUTES_TABLE`.
 
 The same RO and XD policy is also applied to the normal SMM data region, such as stack and heap.
+
 
